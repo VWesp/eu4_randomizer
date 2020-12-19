@@ -2,6 +2,7 @@ import yaml
 import json
 import random
 import itertools
+import sys
 
 adm_ideas = []
 adm_max_level = 0
@@ -58,9 +59,9 @@ def getRandomIdeas(min_cost, max_cost):
                     chosen_ideas[position] = [idea_name, level]
                     break
 
-        adm_max_level = -9223372036854775807 - 1
-        dip_max_level = -9223372036854775807 - 1
-        mil_max_level = -9223372036854775807 - 1
+        adm_max_level = -sys.maxsize - 1
+        dip_max_level = -sys.maxsize - 1
+        mil_max_level = -sys.maxsize - 1
         current_cost = 0
         for position in range(len(chosen_ideas)):
             idea_name = chosen_ideas[position][0]
