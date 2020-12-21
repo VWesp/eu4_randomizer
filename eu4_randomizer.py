@@ -289,7 +289,10 @@ if __name__ == "__main__":
                             stripped_line = line.strip()
                             if(stripped_line and not (stripped_line.startswith("\ufeffl_") or stripped_line.startswith("#"))):
                                 regex_line = re.split(":[0-9]* \"", stripped_line[:-1])
-                                self.translations[regex_line[0].lower()] = regex_line[1].capitalize()
+                                try:
+                                    self.translations[regex_line[0].lower()] = regex_line[1][0].capitalize() + regex_line[1][1:]
+                                except:
+                                    self.translations[regex_line[0].lower()] = regex_line[1]
 
         def startRandomizer(self, min_cost, max_cost, min_iter, max_iter):
             self.cost.set(0.0)
