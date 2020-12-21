@@ -16,8 +16,12 @@ class Application(tk.Frame):
         self.dip_ideas = []
         self.mil_ideas = []
         self.idea_costs = {}
+        self.cultures = {}
+        self.all_cultures = []
+        self.religions = ["catholic", "protestant", "reformed", "orthodox", "coptic", "anglican", "hussite", "sunni", "shiite", "ibadi", "mahayana", "buddhism", "vajrayana", "confucianism", "shinto", "hinduism", "sikhism", "jewish", "zoroastrian"]
         self.translations = {}
         self.loadIdeas("ideas.yaml")
+        self.loadCultures("cultures/00_cultures.json")
         self.loadTranslations("german")
         tk.Frame.__init__(self, master)
         self.master = master
@@ -40,42 +44,42 @@ class Application(tk.Frame):
         ###############################
         self.cost_frame = tk.LabelFrame(self.master, text=self.translations["gui_costs"], borderwidth=2, relief="groove")
         vcmd = (self.cost_frame.register(self.validateCostInput), "%P")
-        self.min_cost_label = tk.Label(self.cost_frame, text=self.translations["gui_minimum"] + ":")
+        self.min_cost_label = tk.Label(self.cost_frame, text=self.translations["gui_minimum"]+":")
         self.min_cost = tk.DoubleVar()
         self.min_cost.set(50)
         self.min_cost_entry = tk.Entry(self.cost_frame, textvariable=self.min_cost, validate="key", validatecommand=vcmd)
-        self.max_cost_label = tk.Label(self.cost_frame, text=self.translations["gui_maximum"] + ":")
+        self.max_cost_label = tk.Label(self.cost_frame, text=self.translations["gui_maximum"]+":")
         self.max_cost = tk.DoubleVar()
         self.max_cost.set(800)
         self.max_cost_entry = tk.Entry(self.cost_frame, textvariable=self.max_cost, validate="key", validatecommand=vcmd)
-        self.min_cost_label.grid(row=0, column=0, pady=5, padx=1)
-        self.max_cost_label.grid(row=0, column=2, pady=5)
-        self.min_cost_entry.grid(row=0, column=1, pady=5, padx=(5, 40))
+        self.min_cost_label.grid(row=0, column=0, pady=5, padx=(5, 20))
+        self.max_cost_label.grid(row=0, column=2, pady=5, padx=(5, 20))
+        self.min_cost_entry.grid(row=0, column=1, pady=5, padx=(5, 30))
         self.max_cost_entry.grid(row=0, column=3, pady=5)
         self.cost_frame.grid(row=1, column=0, pady=5)
         ###############################
         self.iter_frame = tk.LabelFrame(self.master, text=self.translations["gui_iterations"], borderwidth=2, relief="groove")
         vcmd = (self.cost_frame.register(self.validateIterationInput), "%P")
-        self.min_iter_label = tk.Label(self.iter_frame, text=self.translations["gui_minimum"] + ":")
+        self.min_iter_label = tk.Label(self.iter_frame, text=self.translations["gui_minimum"]+":")
         self.min_iter = tk.DoubleVar()
         self.min_iter.set(1000)
         self.min_iter_entry = tk.Entry(self.iter_frame, textvariable=self.min_iter, validate="key", validatecommand=vcmd)
         self.max_iter = tk.DoubleVar()
         self.max_iter.set(100000)
-        self.max_iter_label = tk.Label(self.iter_frame, text=self.translations["gui_maximum"] + ":")
+        self.max_iter_label = tk.Label(self.iter_frame, text=self.translations["gui_maximum"]+":")
         self.max_iter_entry = tk.Entry(self.iter_frame, textvariable=self.max_iter, validate="key", validatecommand=vcmd)
-        self.min_iter_label.grid(row=0, column=0, pady=5)
-        self.max_iter_label.grid(row=0, column=2, pady=5)
-        self.min_iter_entry.grid(row=0, column=1, pady=5, padx=(5, 40))
+        self.min_iter_label.grid(row=0, column=0, pady=5, padx=(5, 20))
+        self.max_iter_label.grid(row=0, column=2, pady=5, padx=(5, 20))
+        self.min_iter_entry.grid(row=0, column=1, pady=5, padx=(5, 30))
         self.max_iter_entry.grid(row=0, column=3, pady=5)
         self.iter_frame.grid(row=2, column=0, pady=5)
         ###############################
         self.start_frame = tk.Frame(self.master,  borderwidth=2, relief="groove")
         self.start_button = tk.Button(self.start_frame, text=self.translations["gui_start"], command=lambda:
-                                      self.getRandomIdeas(self.min_cost, self.max_cost, self.min_iter, self.max_iter))
+                                      self.startRandomizer(self.min_cost, self.max_cost, self.min_iter, self.max_iter))
         self.start_button.grid(row=0, column=0, padx=(5, 25))
         #############
-        self.cost_label = tk.Label(self.start_frame, text=self.translations["gui_costs"] + ":")
+        self.cost_label = tk.Label(self.start_frame, text=self.translations["gui_costs"]+":")
         self.cost_label.grid(row=0, column=1, pady=5, padx=1)
         self.cost = tk.DoubleVar()
         self.cost.set(0)
@@ -83,7 +87,7 @@ class Application(tk.Frame):
         self.cost_entry.config(state="readonly")
         self.cost_entry.grid(row=0, column=2, pady=5, padx=(5, 25))
         #############
-        self.iter_label = tk.Label(self.start_frame, text=self.translations["gui_iterations"] + ":")
+        self.iter_label = tk.Label(self.start_frame, text=self.translations["gui_iterations"]+":")
         self.iter_label.grid(row=0, column=3, pady=5, padx=1)
         self.iter = tk.DoubleVar()
         self.iter.set(0)
@@ -91,6 +95,34 @@ class Application(tk.Frame):
         self.iter_entry.config(state="readonly")
         self.iter_entry.grid(row=0, column=4, pady=5, padx=5)
         self.start_frame.grid(row=3, column=0, pady=5)
+        ###############################
+        self.additional_frame = tk.LabelFrame(self.master, text=self.translations["gui_cul_rel"])
+        #############
+        self.culture_label = tk.Label(self.additional_frame, text=self.translations["gui_culture"]+":")
+        self.culture_label.grid(row=0, column=0, padx=1)
+        self.culture = tk.StringVar()
+        self.culture.set("")
+        self.culture_entry = tk.Entry(self.additional_frame, textvariable=self.culture)
+        self.culture_entry.config(state="readonly")
+        self.culture_entry.grid(row=0, column=1, pady=5, padx=(5,0))
+        #############
+        self.culture_group_label = tk.Label(self.additional_frame, text=" | "+self.translations["gui_culture_group"]+":")
+        self.culture_group_label.grid(row=0, column=2, padx=1)
+        self.culture_group = tk.StringVar()
+        self.culture_group.set("")
+        self.culture_group_entry = tk.Entry(self.additional_frame, textvariable=self.culture_group)
+        self.culture_group_entry.config(state="readonly")
+        self.culture_group_entry.grid(row=0, column=3, pady=5, padx=(0,5))
+        #############
+        self.religion_label = tk.Label(self.additional_frame, text=self.translations["gui_religion"]+":")
+        self.religion_label.grid(row=0, column=4, padx=1)
+        self.religion = tk.StringVar()
+        self.religion.set("")
+        self.religion_entry = tk.Entry(self.additional_frame, textvariable=self.religion)
+        self.religion_entry.config(state="readonly")
+        self.religion_entry.grid(row=0, column=5, pady=5, padx=5)
+        #############
+        self.additional_frame.grid(row=4, column=0, pady=5)
         ###############################
         self.grid_frame = tk.Frame(self.master)
         self.headers = (self.translations["gui_ideas"], self.translations["gui_level"], self.translations["gui_category"])
@@ -104,7 +136,11 @@ class Application(tk.Frame):
         xsb.grid(in_=self.grid_frame, row=1, column=0, sticky=tk.EW)
         self.tree.rowconfigure(0, weight=1)
         self.tree.columnconfigure(0, weight=1)
-        self.grid_frame.grid(row=4, column=0, pady=5)
+        self.grid_frame.grid(row=5, column=0, pady=5, sticky=tk.NSEW)
+        self.master.rowconfigure(5, weight=1)
+        self.master.columnconfigure(0, weight=1)
+        self.grid_frame.rowconfigure(0, weight=1)
+        self.grid_frame.columnconfigure(0, weight=1)
 
     def validateCostInput(self, input):
         if(len(input) == 0 or input[-1].isdigit() or (input[-1] == "." and input.count(".") == 1)):
@@ -124,6 +160,9 @@ class Application(tk.Frame):
         self.translations = {}
         self.cost.set(0.0)
         self.iter.set(0)
+        self.culture.set("")
+        self.culture_group.set("")
+        self.religion.set("")
         for i in self.tree.get_children():
             self.tree.delete(i)
 
@@ -138,6 +177,9 @@ class Application(tk.Frame):
         self.start_button.configure(text=self.translations["gui_start"])
         self.cost_label.configure(text=self.translations["gui_costs"] + ":")
         self.iter_label.configure(text=self.translations["gui_iterations"] + ":")
+        self.culture_label.config(text=self.translations["gui_culture"] + ":")
+        self.culture_group_label.config(text=" | " + self.translations["gui_culture_group"] + ":")
+        self.religion_label.config(text=self.translations["gui_religion"] + ":")
 
     def loadIdeas(self, config_yaml):
         with open(config_yaml, "r", encoding="utf-8") as ideas_file:
@@ -161,6 +203,16 @@ class Application(tk.Frame):
                                         elif("_mil_" in type):
                                             self.mil_ideas.append(idea + "-" + str(current_level))
 
+    def loadCultures(self, path):
+        with open(path, "r", encoding="utf-8") as culture_file:
+            culture_data = json.load(culture_file)
+            for culture_group in culture_data:
+                self.cultures[culture_group] = []
+                for culture in culture_data[culture_group]:
+                    if(not culture == "graphical_culture" and not culture == "dynasty_names"):
+                        self.cultures[culture_group].append(culture)
+                        self.all_cultures.append(culture + "-" + culture_group)
+
     def loadTranslations(self, language):
         self.translations = {}
         if(language == "english"):
@@ -175,6 +227,10 @@ class Application(tk.Frame):
             self.translations["gui_level"] = "Level"
             self.translations["gui_category"] = "Category"
             self.translations["gui_language"] = "Language"
+            self.translations["gui_cul_rel"] = "Culture and Religion"
+            self.translations["gui_culture"] = "Culture"
+            self.translations["gui_culture_group"] = "Group"
+            self.translations["gui_religion"] = "Religion"
         elif(language == "french"):
             self.translations["gui_traditions"] = "Traditions"
             self.translations["gui_ideas"] = "Doctrines"
@@ -187,6 +243,10 @@ class Application(tk.Frame):
             self.translations["gui_level"] = "Niveau"
             self.translations["gui_category"] = "Categorie"
             self.translations["gui_language"] = "Idioma"
+            self.translations["gui_cul_rel"] = "Culture et Religion"
+            self.translations["gui_culture"] = "Culture"
+            self.translations["gui_culture_group"] = "Groupe"
+            self.translations["gui_religion"] = "Religion"
         elif(language == "german"):
             self.translations["gui_traditions"] = "Traditionen"
             self.translations["gui_ideas"] = "Ideen"
@@ -195,10 +255,14 @@ class Application(tk.Frame):
             self.translations["gui_costs"] = "Kosten"
             self.translations["gui_minimum"] = "Minimal"
             self.translations["gui_maximum"] = "Maximal"
-            self.translations["gui_start"] = "Zufallsgenerator Starten"
+            self.translations["gui_start"] = "Starte Zufallsgenerator"
             self.translations["gui_level"] = "Stufe"
             self.translations["gui_category"] = "Kategorie"
             self.translations["gui_language"] = "Sprache"
+            self.translations["gui_cul_rel"] = "Kultur und Religion"
+            self.translations["gui_culture"] = "Kultur"
+            self.translations["gui_culture_group"] = "Gruppe"
+            self.translations["gui_religion"] = "Religion"
         elif(language == "spanish"):
             self.translations["gui_traditions"] = "Tradiciones"
             self.translations["gui_ideas"] = "Ideas"
@@ -211,6 +275,10 @@ class Application(tk.Frame):
             self.translations["gui_level"] = "Nivel"
             self.translations["gui_category"] = "Categoria"
             self.translations["gui_language"] = "Idioma"
+            self.translations["gui_cul_rel"] = "Cultura y Religion"
+            self.translations["gui_culture"] = "Cultura"
+            self.translations["gui_culture_group"] = "Grupo"
+            self.translations["gui_religion"] = "Religion"
 
         for file in os.listdir("localisations/" + language):
             if(file.endswith(".yml")):
@@ -219,9 +287,9 @@ class Application(tk.Frame):
                         stripped_line = line.strip()
                         if(stripped_line and not (stripped_line.startswith("\ufeffl_") or stripped_line.startswith("#"))):
                             regex_line = re.split(":[0-9]* \"", stripped_line[:-1])
-                            self.translations[regex_line[0].lower()] = regex_line[1]
+                            self.translations[regex_line[0].lower()] = regex_line[1].capitalize()
 
-    def getRandomIdeas(self, min_cost, max_cost, min_iter, max_iter):
+    def startRandomizer(self, min_cost, max_cost, min_iter, max_iter):
         self.cost.set(0.0)
         self.iter.set(0)
         for i in self.tree.get_children():
@@ -269,6 +337,11 @@ class Application(tk.Frame):
         position_modifier = [2.0, 2.0, 2.0, 1.8, 1.6, 1.4, 1.2, 1.0, 1.0, 1.0]
         counter = 0
         while(True):
+            if(counter > max_iter):
+                counter -= 1
+                self.iter.set(counter)
+                break
+
             idea_names = []
             for position in range(len(chosen_ideas)):
                 while(True):
@@ -285,10 +358,6 @@ class Application(tk.Frame):
             mil_max_level = -sys.maxsize - 1
             current_cost = 0
             for position in range(len(chosen_ideas)):
-                if(counter > max_iter):
-                    self.iter.set(counter)
-                    return
-
                 idea_name = chosen_ideas[position][0]
                 try:
                     chosen_ideas[position][0] = "\t" + self.translations[idea_name]
@@ -345,7 +414,19 @@ class Application(tk.Frame):
                         if self.tree.column(self.headers[idx], 'width') < iwidth:
                             self.tree.column(self.headers[idx], width = iwidth)
 
-                return
+                break
+
+        taken_culture = None
+        for iterator in range(0, counter):
+            taken_culture = random.choice(self.all_cultures)
+
+        self.culture.set(self.translations["-".join(taken_culture.split("-")[:-1])])
+        self.culture_group.set(self.translations[taken_culture.split("-")[-1]])
+        taken_religion = None
+        for iterator in range(0, counter):
+            taken_religion = random.choice(self.religions)
+
+        self.religion.set(self.translations[taken_religion])
 
 if __name__ == "__main__":
     root = tk.Tk()
