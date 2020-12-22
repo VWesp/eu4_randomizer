@@ -194,16 +194,24 @@ if __name__ == "__main__":
                                 if(not idea == "category"):
                                     self.idea_costs[idea] = {}
                                     self.idea_costs[idea][1] = 0
+                                    idea_name = None
+                                    first_item = True
                                     for level in idea_json[type][idea]:
-                                        if("level_cost_" in level):
+                                        if(first_item):
+                                            idea_name = level.replace("received", "recieved")
+                                            self.idea_costs[idea_name] = {}
+                                            self.idea_costs[idea_name][1] = 0
+                                            first_item = False
+
+                                        elif("level_cost_" in level):
                                             current_level = int(level.split("level_cost_")[1])
-                                            self.idea_costs[idea][current_level] = idea_json[type][idea][level]
+                                            self.idea_costs[idea_name][current_level] = idea_json[type][idea][level]
                                             if("_adm_" in type):
-                                                self.adm_ideas.append(idea + "-" + str(current_level))
+                                                self.adm_ideas.append(idea_name + "-" + str(current_level))
                                             elif("_dip_" in type):
-                                                self.dip_ideas.append(idea + "-" + str(current_level))
+                                                self.dip_ideas.append(idea_name + "-" + str(current_level))
                                             elif("_mil_" in type):
-                                                self.mil_ideas.append(idea + "-" + str(current_level))
+                                                self.mil_ideas.append(idea_name + "-" + str(current_level))
 
         def loadCultures(self, path):
             with open(path, "r", encoding="utf-8") as culture_file:
@@ -289,10 +297,30 @@ if __name__ == "__main__":
                             stripped_line = line.strip()
                             if(stripped_line and not (stripped_line.startswith("\ufeffl_") or stripped_line.startswith("#"))):
                                 regex_line = re.split(":[0-9]* \"", stripped_line[:-1])
+                                regex_line[0] = regex_line[0].lower().replace("received", "recieved")
+                                if(regex_line[0] == "modifier_justify_trade_conflict_time"):
+                                    regex_line[0] = "justify_trade_conflict_cost"
+                                elif(regex_line[0] == "modifier_fabricate_claims_time"):
+                                    regex_line[0] = "fabricate_claims_cost"
+                                elif(regex_line[0] == "regiment_cost"):
+                                    regex_line[0] = "global_regiment_cost"
+                                elif(regex_line[0] == "modifier_reinforce_cost"):
+                                    regex_line[0] = "reinforce_cost_modifier"
+                                elif(regex_line[0] == "modifier_trade_range"):
+                                    regex_line[0] = "trade_range_modifier"
+                                elif(regex_line[0] == "modifier_global_naval_engagement"):
+                                    regex_line[0] = "global_naval_engagement_modifier"
+                                elif(regex_line[0] == "modifier_sailor_maintenance"):
+                                    regex_line[0] = "sailor_maintenance_modifer"
+                                elif(regex_line[0] == "may_attack_primitives"):
+                                    regex_line[0] = "cb_on_primitives"
+                                elif(regex_line[0] == "idea_may_siberian_frontier"):
+                                    regex_line[0] = "may_establish_frontier"
+
                                 try:
-                                    self.translations[regex_line[0].lower()] = regex_line[1][0].capitalize() + regex_line[1][1:]
+                                    self.translations[regex_line[0]] = regex_line[1][0].capitalize() + regex_line[1][1:]
                                 except:
-                                    self.translations[regex_line[0].lower()] = regex_line[1]
+                                    self.translations[regex_line[0]] = regex_line[1]
 
         def startRandomizer(self, min_cost, max_cost, min_iter, max_iter):
             self.cost.set(0.0)
@@ -365,9 +393,19 @@ if __name__ == "__main__":
                 for position in range(len(chosen_ideas)):
                     idea_name = chosen_ideas[position][0]
                     try:
-                        chosen_ideas[position][0] = "\t" + self.translations[idea_name]
+                        chosen_ideas[position][0] = "\t" + self.translations["modifier_"+idea_name]
                     except:
-                        chosen_ideas[position][0] = "\t" + idea_name
+                        try:
+                            chosen_ideas[position][0] = "\t" + self.translations["yearly_"+idea_name]
+                        except:
+                            try:
+                                if("_loyalty_modifier" in idea_name):
+                                    estate = self.translations[idea_name].split("[Country.Get")[1].split("Name]")[0]
+                                    chosen_ideas[position][0] = "\t" + estate + self.translations[idea_name].split("]")[1]
+                                else:
+                                    chosen_ideas[position][0] = "\t" + self.translations[idea_name]
+                            except:
+                                chosen_ideas[position][0] = "\t" + idea_name
 
                     level = chosen_ideas[position][1]
                     if(idea_name + "-" + str(level) in self.adm_ideas):
