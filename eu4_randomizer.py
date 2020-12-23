@@ -22,8 +22,8 @@ if __name__ == "__main__":
             self.all_cultures = []
             self.religions = ["catholic", "protestant", "reformed", "orthodox", "coptic", "anglican", "hussite", "sunni", "shiite", "ibadi", "mahayana", "buddhism", "vajrayana", "confucianism", "shinto", "hinduism", "sikhism", "jewish", "zoroastrian"]
             self.translations = {}
-            self.loadIdeas("../ideas.yaml")
-            self.loadCultures("../cultures/00_cultures.json")
+            self.loadIdeas("../../ideas.yaml")
+            self.loadCultures("../../cultures/00_cultures.json")
             self.loadTranslations("german")
             tk.Frame.__init__(self, master)
             self.master = master
@@ -290,9 +290,9 @@ if __name__ == "__main__":
                 self.translations["gui_culture_group"] = "Grupo"
                 self.translations["gui_religion"] = "Religion"
 
-            for file in os.listdir("../localisations/" + language):
+            for file in os.listdir("../../localisations/" + language):
                 if(file.endswith(".yml")):
-                    with open("../localisations/" + language + "/" + file, "r", encoding="utf-8") as language_file:
+                    with open("../../localisations/" + language + "/" + file, "r", encoding="utf-8") as language_file:
                         for line in language_file.readlines():
                             stripped_line = line.strip()
                             if(stripped_line and not (stripped_line.startswith("\ufeffl_") or stripped_line.startswith("#"))):
@@ -473,7 +473,7 @@ if __name__ == "__main__":
 
     try:
         root = tk.Tk()
-        root.iconbitmap("../icons/ideas.ico")
+        root.iconbitmap("../../icons/ideas.ico")
         root.style = ttk.Style()
         root.style.theme_use("clam")
         Application(root)
