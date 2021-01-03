@@ -1,0 +1,8 @@
+admin: ideas/00_adm_custom_ideas.json
+diplomacy: ideas/00_dip_custom_ideas.json
+millitary: ideas/00_mil_custom_ideas.json
+new: ideas/01_new_ideas.json
+newer: ideas/02_newer_ideas.json
+newer_newer: ideas/02_newer_newer_ideas.json
+third_rome: ideas/03_tr_ideas.json
+emperor: ideas/04_emperor_ideas.json

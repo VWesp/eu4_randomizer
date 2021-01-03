@@ -11,6 +11,8 @@ if __name__ == "__main__":
     from tkinter.font import Font
     import traceback
 
+    root = None
+
     class Application(tk.Frame):
 
         def __init__(self, master=None):
@@ -22,9 +24,21 @@ if __name__ == "__main__":
             self.all_cultures = []
             self.religions = ["catholic", "protestant", "reformed", "orthodox", "coptic", "anglican", "hussite", "sunni", "shiite", "ibadi", "mahayana", "buddhism", "vajrayana", "confucianism", "shinto", "hinduism", "sikhism", "jewish", "zoroastrian"]
             self.translations = {}
-            self.loadIdeas("../../ideas.yaml")
-            self.loadCultures("../../cultures/00_cultures.json")
-            self.loadTranslations("german")
+            try:
+                self.loadIdeas("../../ideas.yaml")
+            except FileNotFoundError as fnfe:
+                self.loadIdeas("ideas/local_ideas.yaml")
+
+            try:
+                self.loadCultures("../../cultures/00_cultures.json")
+            except FileNotFoundError as fnfe:
+                self.loadCultures("cultures/00_cultures.json")
+
+            try:
+                self.loadTranslations("german", "../../localisations/")
+            except FileNotFoundError as fnfe:
+                self.loadTranslations("german", "localisations/")
+
             tk.Frame.__init__(self, master)
             self.master = master
             self.initWindow()
@@ -168,7 +182,11 @@ if __name__ == "__main__":
             for i in self.tree.get_children():
                 self.tree.delete(i)
 
-            self.loadTranslations(language)
+            try:
+                self.loadTranslations(language, "../../localisations/")
+            except FileNotFoundError as fnfe:
+                self.loadTranslations(language, "localisations/")
+
             self.language_frame.configure(text=self.translations["gui_language"])
             self.cost_frame.configure(text=self.translations["gui_costs"])
             self.min_cost_label.configure(text=self.translations["gui_minimum"])
@@ -223,7 +241,7 @@ if __name__ == "__main__":
                             self.cultures[culture_group].append(culture)
                             self.all_cultures.append(culture + "-" + culture_group)
 
-        def loadTranslations(self, language):
+        def loadTranslations(self, language, path):
             self.translations = {}
             if(language == "english"):
                 self.translations["gui_traditions"] = "Traditions"
@@ -290,9 +308,10 @@ if __name__ == "__main__":
                 self.translations["gui_culture_group"] = "Grupo"
                 self.translations["gui_religion"] = "Religion"
 
-            for file in os.listdir("../../localisations/" + language):
+
+            for file in os.listdir(path + language):
                 if(file.endswith(".yml")):
-                    with open("../../localisations/" + language + "/" + file, "r", encoding="utf-8") as language_file:
+                    with open(path + language + "/" + file, "r", encoding="utf-8") as language_file:
                         for line in language_file.readlines():
                             stripped_line = line.strip()
                             if(stripped_line and not (stripped_line.startswith("\ufeffl_") or stripped_line.startswith("#"))):
@@ -323,8 +342,17 @@ if __name__ == "__main__":
                                     self.translations[regex_line[0]] = regex_line[1]
 
         def startRandomizer(self, min_cost, max_cost, min_iter, max_iter):
+            self.start_button.config(state=tk.DISABLED)
+            for button in self.language_frame.winfo_children():
+                button.configure(state=tk.DISABLED)
+
+
             self.cost.set(0.0)
             self.iter.set(0)
+            self.culture.set("")
+            self.culture_group.set("")
+            self.religion.set("")
+            root.update()
             for i in self.tree.get_children():
                 self.tree.delete(i)
 
@@ -369,12 +397,8 @@ if __name__ == "__main__":
             chosen_ideas = [None] * 10
             position_modifier = [2.0, 2.0, 2.0, 1.8, 1.6, 1.4, 1.2, 1.0, 1.0, 1.0]
             counter = 0
+            nothing_found = False
             while(True):
-                if(counter > max_iter):
-                    counter -= 1
-                    self.iter.set(counter)
-                    break
-
                 idea_names = []
                 for position in range(len(chosen_ideas)):
                     while(True):
@@ -426,11 +450,13 @@ if __name__ == "__main__":
                 overloaded = adm_max_level / (adm_max_level + dip_max_level + mil_max_level) > 0.5 or dip_max_level / (adm_max_level + dip_max_level + mil_max_level) > 0.5 or mil_max_level / (adm_max_level + dip_max_level + mil_max_level) > 0.5
                 over_under_cost = current_cost < min_cost or current_cost > max_cost
                 counter += 1
+                self.iter.set(counter)
+                root.update()
                 if(overloaded or over_under_cost or counter < min_iter):
                     chosen_ideas = [None] * 10
                 else:
                     self.cost.set("{:.1f}".format(current_cost))
-                    self.iter.set(counter)
+                    self.update()
                     for position in range(len(chosen_ideas)):
                         if(position == 0):
                             self.tree.insert("", "end", values=(self.translations["gui_traditions"]+":", "", ""))
@@ -459,21 +485,34 @@ if __name__ == "__main__":
 
                     break
 
-            taken_culture = None
-            for iterator in range(0, counter):
-                taken_culture = random.choice(self.all_cultures)
+                if(counter == max_iter):
+                    nothing_found = True
+                    break
 
-            self.culture.set(self.translations["-".join(taken_culture.split("-")[:-1])])
-            self.culture_group.set(self.translations[taken_culture.split("-")[-1]])
-            taken_religion = None
-            for iterator in range(0, counter):
-                taken_religion = random.choice(self.religions)
+            self.start_button.config(state=tk.NORMAL)
+            for button in self.language_frame.winfo_children():
+                button.configure(state=tk.NORMAL)
 
-            self.religion.set(self.translations[taken_religion])
+            if(not nothing_found):
+                taken_culture = None
+                for iterator in range(0, counter):
+                    taken_culture = random.choice(self.all_cultures)
+
+                self.culture.set(self.translations["-".join(taken_culture.split("-")[:-1])])
+                self.culture_group.set(self.translations[taken_culture.split("-")[-1]])
+                taken_religion = None
+                for iterator in range(0, counter):
+                    taken_religion = random.choice(self.religions)
+
+                self.religion.set(self.translations[taken_religion])
 
     try:
         root = tk.Tk()
-        root.iconbitmap("../../icons/ideas.ico")
+        try:
+            root.iconbitmap("../../icons/ideas.ico")
+        except:
+            root.iconbitmap("icons/ideas.ico")
+
         root.style = ttk.Style()
         root.style.theme_use("clam")
         Application(root)
