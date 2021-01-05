@@ -1,0 +1,48 @@
+{
+  "native_basic_reform": {
+    "basic_reform": true,
+    "native_mechanic": true,
+    "allow_migration": true,
+    "valid_for_new_country": false,
+    "allow_convert": true,
+    "republican_name": true,
+    "royal_marriage": false,
+    "fixed_rank": 1,
+    "modifiers": {
+      "stability_cost_modifier": -0.33,
+      "land_maintenance_modifier": -0.25,
+      "diplomatic_upkeep": -1,
+      "global_institution_spread": -0.025
+    },
+    "valid_for_nation_designer": true,
+    "nation_designer_cost": 0,
+    "nation_designer_trigger": {
+      "OR": {
+        "technology_group": [
+          "north_american",
+          "south_american"
+        ]
+      },
+      "NOT": [
+        {
+          "religion": "nahuatl"
+        },
+        {
+          "religion": "mesoamerican_religion"
+        },
+        {
+          "religion": "inti"
+        }
+      ],
+      "capital_scope": {
+        "OR": {
+          "continent": [
+            "north_america",
+            "south_america",
+            "new_world"
+          ]
+        }
+      }
+    }
+  }
+}
