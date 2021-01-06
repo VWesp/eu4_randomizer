@@ -10,7 +10,6 @@ if __name__ == "__main__":
     from tkinter import ttk, filedialog, messagebox
     from tkinter.font import Font
     import traceback
-    import time
 
     root = None
 
@@ -29,8 +28,8 @@ if __name__ == "__main__":
                               "dharmic-hinduism", "dharmic-sikhism",
                               "pagan-animism", "pagan-shamanism", "pagan-totemism", "pagan-inti", "pagan-nahuatl", "pagan-mesoamerican_religion", "pagan-norse_pagan_reformed", "pagan-tengri_pagan_reformed",
                               "other-jewish", "other-zoroastrian"]
-            self.technologies = ["western", "high_american", "eastern", "anatolian", "muslim", "indian", "east_african", "chinese", "west_african",
-                                 "central_african", "nomadic", "mesoamerican", "andean", "north_american", "south_american"]
+            self.technologies = ["western", "high_american", "eastern", "anatolia_region_adj", "muslim", "indian", "east_african", "chinese", "west_african",
+                                 "central_african", "nomad_group", "mesoamerican", "andean", "north_american", "south_american"]
             self.governments = {}
             self.translations = {}
             try:
@@ -186,6 +185,16 @@ if __name__ == "__main__":
             #############
             self.government_frame.grid(row=6, column=0, pady=5)
             ###############################
+            self.technology_frame = tk.LabelFrame(self.master, text=self.translations["gui_technology"])
+            self.technology_label = tk.Label(self.technology_frame, text=self.translations["gui_technology"]+":")
+            self.technology_label.grid(row=0, column=0, padx=1)
+            self.technology = tk.StringVar()
+            self.technology.set("")
+            self.technology_entry = tk.Entry(self.technology_frame, textvariable=self.technology)
+            self.technology_entry.config(state="readonly")
+            self.technology_entry.grid(row=0, column=1, pady=5)
+            self.technology_frame.grid(row=7, column=0, pady=5)
+            ###############################
             self.grid_frame = tk.Frame(self.master)
             self.headers = (self.translations["gui_ideas"], self.translations["gui_level"], self.translations["gui_category"])
             self.tree = ttk.Treeview(columns=self.headers, show="headings")
@@ -198,7 +207,7 @@ if __name__ == "__main__":
             xsb.grid(in_=self.grid_frame, row=1, column=0, sticky=tk.EW)
             self.tree.rowconfigure(0, weight=1)
             self.tree.columnconfigure(0, weight=1)
-            self.grid_frame.grid(row=7, column=0, pady=5, sticky=tk.NSEW)
+            self.grid_frame.grid(row=8, column=0, pady=5, sticky=tk.NSEW)
             self.master.rowconfigure(5, weight=1)
             self.master.columnconfigure(0, weight=1)
             self.grid_frame.rowconfigure(0, weight=1)
@@ -231,6 +240,7 @@ if __name__ == "__main__":
             self.religion_group.set("")
             self.government.set("")
             self.government_group.set("")
+            self.technology.set("")
             for i in self.tree.get_children():
                 self.tree.delete(i)
 
@@ -257,6 +267,8 @@ if __name__ == "__main__":
             self.government_frame.config(text=self.translations["gui_government"] + ":")
             self.government_label.config(text=self.translations["gui_government"] + ":")
             self.government_group_label.config(text=self.translations["gui_group"] + ":")
+            self.technology_frame.config(text=self.translations["gui_technology"] + ":")
+            self.technology_label.config(text=self.translations["gui_technology"] + ":")
 
 
         def loadGovernments(self, path):
@@ -366,7 +378,7 @@ if __name__ == "__main__":
                         idea_json = json.load(idea_file)
                         for idea_type in idea_json:
                             for idea in idea_json[idea_type]:
-                                if(not idea == "category"):
+                                if(not (idea == "category" or idea == "custom_idea_ship_recruit_speed" or idea == "custom_idea_regiment_recruit_speed")):
                                     self.idea_costs[idea] = {}
                                     self.idea_costs[idea][1] = 0
                                     idea_name = None
@@ -381,12 +393,22 @@ if __name__ == "__main__":
                                         elif("level_cost_" in level):
                                             current_level = int(level.split("level_cost_")[1])
                                             self.idea_costs[idea_name][current_level] = idea_json[idea_type][idea][level]
-                                            if("_adm_" in idea_type):
-                                                self.adm_ideas.append(idea_name + "-" + str(current_level))
-                                            elif("_dip_" in idea_type):
-                                                self.dip_ideas.append(idea_name + "-" + str(current_level))
-                                            elif("_mil_" in idea_type):
-                                                self.mil_ideas.append(idea_name + "-" + str(current_level))
+                                            if("adm" in idea_type):
+                                                if(not idea_name + "-" + str(current_level) in self.adm_ideas):
+                                                    self.adm_ideas.append(idea_name + "-" + str(current_level))
+                                            elif("dip" in idea_type):
+                                                if(not idea_name + "-" + str(current_level) in self.dip_ideas):
+                                                    self.dip_ideas.append(idea_name + "-" + str(current_level))
+                                            elif("mil" in idea_type):
+                                                if(not idea_name + "-" + str(current_level) in self.mil_ideas):
+                                                    self.mil_ideas.append(idea_name + "-" + str(current_level))
+
+                                    if("adm" in idea_type and not idea_name + "-1" in self.adm_ideas):
+                                        self.adm_ideas.append(idea_name + "-1")
+                                    elif("dip" in idea_type and not idea_name + "-1" in self.dip_ideas):
+                                        self.dip_ideas.append(idea_name + "-1")
+                                    elif("mil" in idea_type and not idea_name + "-1" in self.mil_ideas):
+                                        self.mil_ideas.append(idea_name + "-1")
 
 
         def loadCultures(self, path):
@@ -419,6 +441,7 @@ if __name__ == "__main__":
                 self.translations["gui_group"] = "Group"
                 self.translations["gui_religion"] = "Religion"
                 self.translations["gui_government"] = "Government"
+                self.translations["gui_technology"] = "Technology"
             elif(language == "french"):
                 self.translations["gui_traditions"] = "Traditions"
                 self.translations["gui_ideas"] = "Doctrines"
@@ -436,6 +459,7 @@ if __name__ == "__main__":
                 self.translations["gui_group"] = "Groupe"
                 self.translations["gui_religion"] = "Religion"
                 self.translations["gui_government"] = "Gouvernement"
+                self.translations["gui_technology"] = "Technologie"
             elif(language == "german"):
                 self.translations["gui_traditions"] = "Traditionen"
                 self.translations["gui_ideas"] = "Ideen"
@@ -452,6 +476,7 @@ if __name__ == "__main__":
                 self.translations["gui_group"] = "Gruppe"
                 self.translations["gui_religion"] = "Religion"
                 self.translations["gui_government"] = "Regierung"
+                self.translations["gui_technology"] = "Technologie"
             elif(language == "spanish"):
                 self.translations["gui_traditions"] = "Tradiciones"
                 self.translations["gui_ideas"] = "Ideas"
@@ -469,6 +494,7 @@ if __name__ == "__main__":
                 self.translations["gui_group"] = "Grupo"
                 self.translations["gui_religion"] = "Religion"
                 self.translations["gui_government"] = "Gobierno"
+                self.translations["gui_technology"] = "Tecnología"
 
 
             for file in os.listdir(path + language):
@@ -498,6 +524,36 @@ if __name__ == "__main__":
                                     regex_line[0] = "cb_on_primitives"
                                 elif(regex_line[0] == "idea_may_siberian_frontier"):
                                     regex_line[0] = "may_establish_frontier"
+                                elif(regex_line[0] == "local_autonomy_mod"):
+                                    regex_line[0] = "local_autonomy"
+                                elif(regex_line[0] == "global_autonomy_mod"):
+                                    regex_line[0] = "global_autonomy"
+                                elif(regex_line[0] == "lightship_power"):
+                                    regex_line[0] = "light_ship_power"
+                                elif(regex_line[0] == "lightship_cost"):
+                                    regex_line[0] = "light_ship_cost"
+                                elif(regex_line[0] == "galleyship_power"):
+                                    regex_line[0] = "galley_ship_power"
+                                elif(regex_line[0] == "galleyship_cost"):
+                                    regex_line[0] = "galley_ship_cost"
+                                elif(regex_line[0] == "heavyship_power"):
+                                    regex_line[0] = "heavy_ship_power"
+                                elif(regex_line[0] == "heavyship_cost"):
+                                    regex_line[0] = "heavy_ship_cost"
+                                elif(regex_line[0] == "naval_leader_maneuver"):
+                                    regex_line[0] = "leader_naval_manuever"
+                                elif(regex_line[0] == "land_leader_maneuver"):
+                                    regex_line[0] = "leader_land_manuever"
+                                elif(regex_line[0] == "global_tariff_modifier"):
+                                    regex_line[0] = "global_tariffs"
+                                elif(regex_line[0] == "spy_global_defence"):
+                                    regex_line[0] = "global_spy_defence"
+                                elif(regex_line[0] == "modifier_colonial_range"):
+                                    regex_line[0] = "range"
+                                elif(regex_line[0] == "sailors_recovery"):
+                                    regex_line[0] = "sailors_recovery_speed"
+                                elif(regex_line[0] == "modifier_diplo_skill"):
+                                    regex_line[0] = "diplomatic_reputation"
 
                                 try:
                                     self.translations[regex_line[0]] = regex_line[1][0].upper() + regex_line[1][1:]
@@ -518,6 +574,7 @@ if __name__ == "__main__":
             self.religion_group.set("")
             self.government.set("")
             self.government_group.set("")
+            self.technology.set("")
             root.update()
             for i in self.tree.get_children():
                 self.tree.delete(i)
@@ -610,35 +667,91 @@ if __name__ == "__main__":
                             taken_government = None
                             continue
 
+                # set government group
+                # and remove incorrect ideas for given government
+                ideas_pool_government = None
+                all_ideas = self.adm_ideas+self.dip_ideas+self.mil_ideas
                 if(taken_government in self.monarchies[0]):
                     taken_government_group = "monarchy"
+                    not_allowed_ideas = ["horde_unity", "devotion", "republican_tradition", "meritocracy", "monthly_militarized_society"]
+                    if(taken_government == "prussian_monarchy"):
+                        not_allowed_ideas = ["horde_unity", "devotion", "republican_tradition", "meritocracy"]
+                    elif(taken_government == "celestial_empire"):
+                        not_allowed_ideas = ["legitimacy", "horde_unity", "devotion", "republican_tradition", "monthly_militarized_society", "loyalty"]
+
+                    ideas_pool_government = [idea for idea in all_ideas if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
                 elif(taken_government in self.republics[0]):
                     taken_government_group = "republic"
+                    not_allowed_ideas = ["legitimacy", "horde_unity", "devotion", "meritocracy", "heir_chance", "monthly_militarized_society", "monarch_admin_power", "monarch_diplomatic_power", "monarch_military_power"]
+                    if(taken_government == "prussian_republic_reform"):
+                        not_allowed_ideas = ["legitimacy", "horde_unity", "devotion", "meritocracy", "heir_chance", "monarch_admin_power", "monarch_diplomatic_power", "monarch_military_power"]
+                    elif(taken_government == "pirate_republic_reform" or taken_government == "plutocratic_reform" or taken_government == "veche_republic" or taken_government == "venice_merchants_reform" or taken_government == "cossacks_reform"):
+                        not_allowed_ideas = ["legitimacy", "horde_unity", "devotion", "meritocracy", "heir_chance", "monthly_militarized_society", "monarch_admin_power", "monarch_diplomatic_power", "monarch_military_power", "loyalty"]
+
+                    ideas_pool_government = [idea for idea in all_ideas if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
                 elif(taken_government in self.theocracies[0]):
                     taken_government_group = "theocracy"
+                    not_allowed_ideas = ["legitimacy", "horde_unity", "republican_tradition", "meritocracy", "heir_chance", "monthly_militarized_society", "monarch_admin_power", "monarch_diplomatic_power", "monarch_military_power"]
+                    ideas_pool_government = [idea for idea in all_ideas if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
                 elif(taken_government in self.tribes[0]):
                     taken_government_group = "tribal"
+                    not_allowed_ideas = ["horde_unity", "devotion", "republican_tradition", "meritocracy", "monthly_militarized_society"]
+                    if(taken_government == "steppe_horde"):
+                        not_allowed_ideas = ["legitimacy", "devotion", "republican_tradition", "meritocracy", "monthly_militarized_society"]
+                    elif(taken_government == "siberian_tribe"):
+                        not_allowed_ideas = ["horde_unity", "devotion", "republican_tradition", "meritocracy", "monthly_militarized_society", "loyalty"]
+
+                    ideas_pool_government = [idea for idea in all_ideas if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
                 elif(taken_government in self.natives[0]):
                     taken_government_group = "native"
+                    not_allowed_ideas = ["horde_unity", "devotion", "republican_tradition", "meritocracy", "monthly_militarized_society", "loyalty"]
+                    ideas_pool_government = [idea for idea in all_ideas if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
                 else:
                     taken_government_group = "other"
+                    if(taken_government == "united_cantons_reform"):
+                        not_allowed_ideas = ["legitimacy", "horde_unity", "meritocracy", "heir_chance", "monthly_militarized_society", "monarch_admin_power", "monarch_diplomatic_power", "monarch_military_power"]
+                    elif(taken_government == "holy_state_reform"):
+                        not_allowed_ideas = ["legitimacy", "horde_unity", "republican_tradition", "meritocracy", "heir_chance", "monthly_militarized_society", "monarch_admin_power", "monarch_diplomatic_power", "monarch_military_power"]
 
-                idea_names = []
+                    ideas_pool_government = [idea for idea in all_ideas if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+
+                # remove incorrect ideas for given religion
+                ideas_pool = None
+                if(taken_religion == "catholic"):
+                    not_allowed_ideas = ["yearly_harmony", "harmonization_speed", "church_power_modifier", "monthly_fervor_increase", "monthly_piety", "yearly_patriarch_authority"]
+                    ideas_pool = [idea for idea in ideas_pool_government if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+                elif(taken_religion == "protestant" or taken_religion == "anglican" or taken_religion == "hussite"):
+                    not_allowed_ideas = ["papal_influence", "yearly_harmony", "harmonization_speed", "monthly_fervor_increase", "monthly_piety", "yearly_patriarch_authority"]
+                    ideas_pool = [idea for idea in ideas_pool_government if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+                elif(taken_religion == "reformed"):
+                    not_allowed_ideas = ["papal_influence", "yearly_harmony", "harmonization_speed", "church_power_modifier", "monthly_piety", "yearly_patriarch_authority"]
+                    ideas_pool = [idea for idea in ideas_pool_government if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+                elif(taken_religion == "orthodox"):
+                    not_allowed_ideas = ["papal_influence", "yearly_harmony", "harmonization_speed", "church_power_modifier", "monthly_fervor_increase", "monthly_piety"]
+                    ideas_pool = [idea for idea in ideas_pool_government if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+                elif(taken_religion == "confucianism"):
+                    not_allowed_ideas = ["papal_influence", "church_power_modifier", "monthly_fervor_increase", "monthly_piety", "yearly_patriarch_authority"]
+                    ideas_pool = [idea for idea in ideas_pool_government if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+                elif(taken_religion_group == "muslim"):
+                    not_allowed_ideas = ["papal_influence", "yearly_harmony", "harmonization_speed", "church_power_modifier", "monthly_fervor_increase", "yearly_patriarch_authority"]
+                    ideas_pool = [idea for idea in ideas_pool_government if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+                else:
+                    not_allowed_ideas = ["papal_influence", "yearly_harmony", "harmonization_speed", "church_power_modifier", "monthly_fervor_increase", "monthly_piety", "yearly_patriarch_authority"]
+                    ideas_pool = [idea for idea in ideas_pool_government if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+
                 for position in range(len(chosen_ideas)):
-                    while(True):
-                        taken_idea = random.choice(self.adm_ideas + self.dip_ideas + self.mil_ideas)
-                        idea_name = "-".join(taken_idea.split("-")[:-1])
-                        level = int(taken_idea.split("-")[-1])
-                        if(not idea_name in idea_names):
-                            idea_names.append(idea_name)
-                            chosen_ideas[position] = [idea_name, level]
-                            break
+                    taken_idea = random.choice(ideas_pool)
+                    idea_name = "-".join(taken_idea.split("-")[:-1])
+                    level = int(taken_idea.split("-")[-1])
+                    chosen_ideas[position] = [idea_name, level]
+                    ideas_pool_temp = [idea for idea in ideas_pool if not idea_name in idea]
+                    ideas_pool = ideas_pool_temp
 
                 adm_max_level = -sys.maxsize - 1
                 dip_max_level = -sys.maxsize - 1
                 mil_max_level = -sys.maxsize - 1
                 current_cost = 0
-                if(taken_government == "high_american"):
+                if(taken_technology == "high_american"):
                     current_cost += 75
 
                 current_cost += self.governments[taken_government]["costs"]
@@ -694,6 +807,7 @@ if __name__ == "__main__":
                 except:
                     self.government_group.set(taken_government_group.capitalize())
 
+                self.technology.set(self.translations[taken_technology])
                 root.update()
                 if(overloaded or over_under_cost or counter < min_iter):
                     chosen_ideas = [None] * 10
