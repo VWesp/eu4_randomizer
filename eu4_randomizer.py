@@ -378,7 +378,11 @@ if __name__ == "__main__":
                         idea_json = json.load(idea_file)
                         for idea_type in idea_json:
                             for idea in idea_json[idea_type]:
-                                if(not (idea == "category" or idea == "custom_idea_ship_recruit_speed" or idea == "custom_idea_regiment_recruit_speed")):
+                                if(idea == "custom_idea_female_advisor_chance"):
+                                    self.idea_costs["female_advisor_chance"] = {}
+                                    self.idea_costs["female_advisor_chance"][10] = 0
+                                    self.adm_ideas.append("female_advisor_chance-10")
+                                elif(not (idea == "category" or idea == "custom_idea_ship_recruit_speed" or idea == "custom_idea_regiment_recruit_speed")):
                                     self.idea_costs[idea] = {}
                                     self.idea_costs[idea][1] = 0
                                     idea_name = None
@@ -554,6 +558,11 @@ if __name__ == "__main__":
                                     regex_line[0] = "sailors_recovery_speed"
                                 elif(regex_line[0] == "modifier_diplo_skill"):
                                     regex_line[0] = "diplomatic_reputation"
+                                elif(regex_line[0] == "global_manpower"):
+                                    regex_line[0] = "global_manpower_modifier"
+
+                                #if(regex_line[1] == "National Manpower Modifier"):
+                                #    print(regex_line[0])
 
                                 try:
                                     self.translations[regex_line[0]] = regex_line[1][0].upper() + regex_line[1][1:]
@@ -624,9 +633,16 @@ if __name__ == "__main__":
                 culture = random.choice(self.all_cultures)
                 taken_culture = "-".join(culture.split("-")[:-1])
                 taken_culture_group = culture.split("-")[-1]
-                religion = random.choice(self.religions)
-                taken_religion = religion.split("-")[1]
-                taken_religion_group = religion.split("-")[0]
+                taken_religion = None
+                taken_religion_group = None
+                while(taken_religion == None):
+                    religion = random.choice(self.religions)
+                    taken_religion = religion.split("-")[1]
+                    taken_religion_group = religion.split("-")[0]
+                    if(taken_religion == "anglican" and taken_culture_group != "british"):
+                        taken_religion = None
+                        taken_religion_group = None
+
                 taken_technology = random.choice(self.technologies)
                 taken_government = None
                 taken_government_group = None
