@@ -196,8 +196,12 @@ if __name__ == "__main__":
             self.technology_frame.grid(row=7, column=0, pady=5)
             ###############################
             self.grid_frame = tk.Frame(self.master)
-            self.headers = (self.translations["gui_ideas"], self.translations["gui_level"], self.translations["gui_category"])
-            self.tree = ttk.Treeview(columns=self.headers, show="headings")
+            self.tree = ttk.Treeview(self.grid_frame, column=("level", "category"))
+            self.tree.heading("#0", text=self.translations["gui_ideas"], anchor="center")
+            self.tree.heading("#1", text=self.translations["gui_level"], anchor="center")
+            self.tree.heading("#2", text=self.translations["gui_category"], anchor="center")
+            self.tree.column("level", anchor="center")
+            self.tree.column("category", anchor="center")
             ysb = ttk.Scrollbar(orient="vertical", command=self.tree.yview)
             xsb = ttk.Scrollbar(orient="horizontal", command=self.tree.xview)
             self.tree["yscroll"] = ysb.set
@@ -269,6 +273,9 @@ if __name__ == "__main__":
             self.government_group_label.config(text=self.translations["gui_group"] + ":")
             self.technology_frame.config(text=self.translations["gui_technology"] + ":")
             self.technology_label.config(text=self.translations["gui_technology"] + ":")
+            self.tree.heading("#0", text=self.translations["gui_ideas"], anchor="center")
+            self.tree.heading("#1", text=self.translations["gui_level"], anchor="center")
+            self.tree.heading("#2", text=self.translations["gui_category"], anchor="center")
 
 
         def loadGovernments(self, path):
@@ -560,6 +567,14 @@ if __name__ == "__main__":
                                     regex_line[0] = "diplomatic_reputation"
                                 elif(regex_line[0] == "global_manpower"):
                                     regex_line[0] = "global_manpower_modifier"
+                                elif(regex_line[0] == "manpower_recovery"):
+                                    regex_line[0] = "manpower_recovery_speed"
+                                elif(regex_line[0] == "global_sailors"):
+                                    regex_line[0] = "global_sailors_modifier"
+                                elif(regex_line[0] == "modifier_colonial_growth"):
+                                    regex_line[0] = "global_colonial_growth"
+                                elif(regex_line[0] == "modifier_accepted_cultures"):
+                                    regex_line[0] = "num_accepted_cultures"
 
                                 try:
                                     self.translations[regex_line[0]] = regex_line[1][0].upper() + regex_line[1][1:]
@@ -587,12 +602,18 @@ if __name__ == "__main__":
 
             try:
                 min_cost = float(min_cost.get())
+                if(min_cost < 0):
+                    min_cost = 50
+                    self.min_cost.set(50)
             except:
                 min_cost = 50
                 self.min_cost.set(50)
 
             try:
                 max_cost = float(max_cost.get())
+                if(max_cost < 0):
+                    max_cost = 800
+                    self.max_cost.set(800)
             except:
                 max_cost = 800
                 self.max_cost.set(800)
@@ -606,12 +627,18 @@ if __name__ == "__main__":
 
             try:
                 min_iter = int(min_iter.get())
+                if(min_iter < 0):
+                    min_iter = 1000
+                    self.min_iter.set(1000)
             except:
                 min_iter = 1000
                 self.min_iter.set(1000)
 
             try:
                 max_iter = int(max_iter.get())
+                if(max_iter < 0):
+                    max_iter = 100000
+                    self.max_iter.set(100000)
             except:
                 max_iter = 100000
                 self.max_iter.set(100000)
@@ -626,6 +653,7 @@ if __name__ == "__main__":
             chosen_ideas = [None] * 10
             position_modifier = [2.0, 2.0, 2.0, 1.8, 1.6, 1.4, 1.2, 1.0, 1.0, 1.0]
             counter = 0
+            self.idea_icons = [None] * 10
             while(True):
                 culture = random.choice(self.all_cultures)
                 taken_culture = "-".join(culture.split("-")[:-1])
@@ -767,9 +795,9 @@ if __name__ == "__main__":
                     ideas_pool_temp = [idea for idea in ideas_pool if not idea_name in idea]
                     ideas_pool = ideas_pool_temp
 
-                adm_max_level = -sys.maxsize - 1
-                dip_max_level = -sys.maxsize - 1
-                mil_max_level = -sys.maxsize - 1
+                adm_max_level = 0
+                dip_max_level = 0
+                mil_max_level = 0
                 current_cost = 0
                 if(taken_technology == "high_american"):
                     current_cost += 75
@@ -777,21 +805,6 @@ if __name__ == "__main__":
                 current_cost += self.governments[taken_government]["costs"]
                 for position in range(len(chosen_ideas)):
                     idea_name = chosen_ideas[position][0]
-                    try:
-                        chosen_ideas[position][0] = "\t" + self.translations["modifier_"+idea_name]
-                    except:
-                        try:
-                            chosen_ideas[position][0] = "\t" + self.translations["yearly_"+idea_name]
-                        except:
-                            try:
-                                if("_loyalty_modifier" in idea_name):
-                                    estate = self.translations[idea_name].split("[Country.Get")[1].split("Name]")[0]
-                                    chosen_ideas[position][0] = "\t" + estate + self.translations[idea_name].split("]")[1]
-                                else:
-                                    chosen_ideas[position][0] = "\t" + self.translations[idea_name]
-                            except:
-                                chosen_ideas[position][0] = "\t" + idea_name
-
                     level = chosen_ideas[position][1]
                     if(idea_name + "-" + str(level) in self.adm_ideas):
                         chosen_ideas[position].append("ADM")
@@ -832,31 +845,41 @@ if __name__ == "__main__":
                 if(overloaded or over_under_cost or counter < min_iter):
                     chosen_ideas = [None] * 10
                 else:
+                    section = None
                     for position in range(len(chosen_ideas)):
                         if(position == 0):
-                            self.tree.insert("", "end", values=(self.translations["gui_traditions"]+":", "", ""))
-                            for idx, val in enumerate((self.translations["gui_traditions"]+":", "", "")):
-                                iwidth = Font().measure(val)
-                                if self.tree.column(self.headers[idx], 'width') < iwidth:
-                                    self.tree.column(self.headers[idx], width = iwidth)
+                            section = "traditions"
+                            self.tree.insert("", "end", section, text=self.translations["gui_traditions"]+":", values=("", ""))
                         elif(position == 2):
-                            self.tree.insert("", "end", values=(self.translations["gui_ideas"]+":", "", ""))
-                            for idx, val in enumerate((self.translations["gui_ideas"]+":", "", "")):
-                                iwidth = Font().measure(val)
-                                if self.tree.column(self.headers[idx], 'width') < iwidth:
-                                    self.tree.column(self.headers[idx], width = iwidth)
+                            section = "ideas"
+                            self.tree.insert("", "end", section, text=self.translations["gui_ideas"]+":", values=("", ""))
                         elif(position == 9):
-                            self.tree.insert("", "end", values=(self.translations["gui_ambitions"]+":", "", ""))
-                            for idx, val in enumerate((self.translations["gui_ambitions"]+":", "", "")):
-                                iwidth = Font().measure(val)
-                                if self.tree.column(self.headers[idx], 'width') < iwidth:
-                                    self.tree.column(self.headers[idx], width = iwidth)
+                            section = "amibitions"
+                            self.tree.insert("", "end", section, text=self.translations["gui_ambitions"]+":", values=("", ""))
 
-                        self.tree.insert("", "end", values=chosen_ideas[position])
-                        for idx, val in enumerate(chosen_ideas[position]):
-                            iwidth = Font().measure(val)
-                            if self.tree.column(self.headers[idx], 'width') < iwidth:
-                                self.tree.column(self.headers[idx], width = iwidth)
+                        icon = None
+                        try:
+                            icon = tk.PhotoImage(file="../../ideas/icons/"+chosen_ideas[position][0]+".gif")
+                        except:
+                            icon = tk.PhotoImage(file="ideas/icons/"+chosen_ideas[position][0]+".gif")
+
+                        icon = icon.subsample(3, 3)
+                        self.idea_icons[position] = icon
+                        idea_name = chosen_ideas[position][0]
+                        try:
+                            self.tree.insert(section, "end", text=" "+self.translations["modifier_"+idea_name], image=self.idea_icons[position], values=chosen_ideas[position][1:])
+                        except:
+                            try:
+                                self.tree.insert(section, "end", text=" "+self.translations["yearly_"+idea_name], image=self.idea_icons[position], values=chosen_ideas[position][1:])
+                            except:
+                                if("_loyalty_modifier" in idea_name):
+                                    estate = self.translations[idea_name].split("[Country.Get")[1].split("Name]")[0]
+                                    self.tree.insert(section, "end", text=" "+estate+self.translations[idea_name].split("]")[1], image=self.idea_icons[position], values=chosen_ideas[position][1:])
+                                else:
+                                    self.tree.insert(section, "end", text=" "+self.translations[idea_name], image=self.idea_icons[position], values=chosen_ideas[position][1:])
+
+                    for i in self.tree.get_children():
+                        self.tree.item(i, open=True)
 
                     break
 
