@@ -708,84 +708,145 @@ if __name__ == "__main__":
                             taken_government = None
                             continue
 
+                all_ideas = self.adm_ideas + self.dip_ideas + self.mil_ideas
+                exclusive_ideas = ["legitimacy", "horde_unity", "devotion", "republican_tradition", "meritocracy", "monthly_militarized_society", "heir_chance",
+                                   "monarch_admin_power", "monarch_diplomatic_power", "monarch_military_power", "loyalty", "papal_influence", "yearly_harmony", "harmonization_speed",
+                                   "church_power_modifier", "monthly_fervor_increase", "monthly_piety", "yearly_patriarch_authority", "amount_of_banners"]
+                exclusive_ideas_pool = [idea for idea in all_ideas if any(exlusive in idea for exlusive in exclusive_ideas)]
+                ideas_pool = [idea for idea in all_ideas if not any(exlusive in idea for exlusive in exclusive_ideas)]
                 # set government group
-                # and remove incorrect ideas for given government
-                ideas_pool_government = None
-                all_ideas = self.adm_ideas+self.dip_ideas+self.mil_ideas
+                # and add specific ideas for given government
                 if(taken_government in self.monarchies[0]):
                     taken_government_group = "monarchy"
-                    not_allowed_ideas = ["horde_unity", "devotion", "republican_tradition", "meritocracy", "monthly_militarized_society", "amount_of_banners"]
-                    if(taken_government == "prussian_monarchy"):
-                        not_allowed_ideas = ["horde_unity", "devotion", "republican_tradition", "meritocracy", "amount_of_banners"]
-                    elif(taken_government == "celestial_empire"):
-                        not_allowed_ideas = ["legitimacy", "horde_unity", "devotion", "republican_tradition", "monthly_militarized_society", "loyalty", "amount_of_banners"]
+                    for idea in ["heir_chance", "monarch_admin_power", "monarch_diplomatic_power", "monarch_military_power"]:
+                        matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if idea in exlusive]
+                        ideas_pool.extend(matching_ideas)
 
-                    ideas_pool_government = [idea for idea in all_ideas if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+                    if(taken_government == "celestial_empire"):
+                        matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "meritocracy" in exlusive]
+                        ideas_pool.extend(matching_ideas)
+                    else:
+                        matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "legitimacy" in exlusive]
+                        ideas_pool.extend(matching_ideas)
+                        if(taken_government == "prussian_monarchy"):
+                            matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "monthly_militarized_society" in exlusive]
+                            ideas_pool.extend(matching_ideas)
                 elif(taken_government in self.republics[0]):
                     taken_government_group = "republic"
-                    not_allowed_ideas = ["legitimacy", "horde_unity", "devotion", "meritocracy", "heir_chance", "monthly_militarized_society", "monarch_admin_power", "monarch_diplomatic_power", "monarch_military_power", "amount_of_banners"]
+                    matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "republican_tradition" in exlusive]
+                    ideas_pool.extend(matching_ideas)
                     if(taken_government == "prussian_republic_reform"):
-                        not_allowed_ideas = ["legitimacy", "horde_unity", "devotion", "meritocracy", "heir_chance", "monarch_admin_power", "monarch_diplomatic_power", "monarch_military_power", "amount_of_banners"]
-                    elif(taken_government == "pirate_republic_reform" or taken_government == "plutocratic_reform" or taken_government == "veche_republic" or taken_government == "venice_merchants_reform" or taken_government == "cossacks_reform"):
-                        not_allowed_ideas = ["legitimacy", "horde_unity", "devotion", "meritocracy", "heir_chance", "monthly_militarized_society", "monarch_admin_power", "monarch_diplomatic_power", "monarch_military_power", "loyalty", "amount_of_banners"]
-
-                    ideas_pool_government = [idea for idea in all_ideas if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+                        matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "monthly_militarized_society" in exlusive]
+                        ideas_pool.extend(matching_ideas)
                 elif(taken_government in self.theocracies[0]):
                     taken_government_group = "theocracy"
-                    not_allowed_ideas = ["legitimacy", "horde_unity", "republican_tradition", "meritocracy", "heir_chance", "monthly_militarized_society", "monarch_admin_power", "monarch_diplomatic_power", "monarch_military_power", "amount_of_banners"]
-                    ideas_pool_government = [idea for idea in all_ideas if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+                    matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "devotion" in exlusive]
+                    ideas_pool.extend(matching_ideas)
                 elif(taken_government in self.tribes[0]):
                     taken_government_group = "tribal"
-                    not_allowed_ideas = ["horde_unity", "devotion", "republican_tradition", "meritocracy", "monthly_militarized_society", "amount_of_banners"]
-                    if(taken_government == "steppe_horde"):
-                        not_allowed_ideas = ["legitimacy", "devotion", "republican_tradition", "meritocracy", "monthly_militarized_society", "amount_of_banners"]
-                    elif(taken_government == "siberian_tribe"):
-                        not_allowed_ideas = ["horde_unity", "devotion", "republican_tradition", "meritocracy", "monthly_militarized_society", "loyalty", "amount_of_banners"]
+                    for idea in ["heir_chance", "monarch_admin_power", "monarch_diplomatic_power", "monarch_military_power"]:
+                        matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if idea in exlusive]
+                        ideas_pool.extend(matching_ideas)
 
-                    ideas_pool_government = [idea for idea in all_ideas if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+                    if(taken_government == "steppe_horde"):
+                        matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "horde_unity" in exlusive]
+                        ideas_pool.extend(matching_ideas)
+                    else:
+                        matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "legitimacy" in exlusive]
+                        ideas_pool.extend(matching_ideas)
                 elif(taken_government in self.natives[0]):
                     taken_government_group = "native"
-                    not_allowed_ideas = ["horde_unity", "devotion", "republican_tradition", "meritocracy", "monthly_militarized_society", "loyalty", "amount_of_banners"]
-                    ideas_pool_government = [idea for idea in all_ideas if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+                    for idea in ["legitimacy", "heir_chance", "monarch_admin_power", "monarch_diplomatic_power", "monarch_military_power"]:
+                        matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if idea in exlusive]
+                        ideas_pool.extend(matching_ideas)
                 else:
                     taken_government_group = "other"
                     if(taken_government == "united_cantons_reform"):
-                        not_allowed_ideas = ["legitimacy", "horde_unity", "meritocracy", "heir_chance", "monthly_militarized_society", "monarch_admin_power", "monarch_diplomatic_power", "monarch_military_power", "amount_of_banners"]
+                        for idea in ["republican_tradition", "devotion"]:
+                            matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if idea in exlusive]
+                            ideas_pool.extend(matching_ideas)
                     elif(taken_government == "holy_state_reform"):
-                        not_allowed_ideas = ["legitimacy", "horde_unity", "republican_tradition", "meritocracy", "heir_chance", "monthly_militarized_society", "monarch_admin_power", "monarch_diplomatic_power", "monarch_military_power", "amount_of_banners"]
+                        matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "devotion" in exlusive]
+                        ideas_pool.extend(matching_ideas)
 
-                    ideas_pool_government = [idea for idea in all_ideas if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
-
-                # remove incorrect ideas for given religion
-                ideas_pool_religion = None
+                # add specific ideas for given religion
                 if(taken_religion == "catholic"):
-                    not_allowed_ideas = ["yearly_harmony", "harmonization_speed", "church_power_modifier", "monthly_fervor_increase", "monthly_piety", "yearly_patriarch_authority"]
-                    ideas_pool_religion = [idea for idea in ideas_pool_government if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+                    matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "papal_influence" in exlusive]
+                    ideas_pool.extend(matching_ideas)
                 elif(taken_religion == "protestant" or taken_religion == "anglican" or taken_religion == "hussite"):
-                    not_allowed_ideas = ["papal_influence", "yearly_harmony", "harmonization_speed", "monthly_fervor_increase", "monthly_piety", "yearly_patriarch_authority"]
-                    ideas_pool_religion = [idea for idea in ideas_pool_government if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+                    matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "church_power_modifier" in exlusive]
+                    ideas_pool.extend(matching_ideas)
                 elif(taken_religion == "reformed"):
-                    not_allowed_ideas = ["papal_influence", "yearly_harmony", "harmonization_speed", "church_power_modifier", "monthly_piety", "yearly_patriarch_authority"]
-                    ideas_pool_religion = [idea for idea in ideas_pool_government if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+                    matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "monthly_fervor_increase" in exlusive]
+                    ideas_pool.extend(matching_ideas)
                 elif(taken_religion == "orthodox"):
-                    not_allowed_ideas = ["papal_influence", "yearly_harmony", "harmonization_speed", "church_power_modifier", "monthly_fervor_increase", "monthly_piety"]
-                    ideas_pool_religion = [idea for idea in ideas_pool_government if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+                    matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "yearly_patriarch_authority" in exlusive]
+                    ideas_pool.extend(matching_ideas)
                 elif(taken_religion == "confucianism"):
-                    not_allowed_ideas = ["papal_influence", "church_power_modifier", "monthly_fervor_increase", "monthly_piety", "yearly_patriarch_authority"]
-                    ideas_pool_religion = [idea for idea in ideas_pool_government if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+                    for idea in ["harmonization_speed", "yearly_harmony"]:
+                        matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if idea in exlusive]
+                        ideas_pool.extend(matching_ideas)
                 elif(taken_religion_group == "muslim"):
-                    not_allowed_ideas = ["papal_influence", "yearly_harmony", "harmonization_speed", "church_power_modifier", "monthly_fervor_increase", "yearly_patriarch_authority"]
-                    ideas_pool_religion = [idea for idea in ideas_pool_government if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
-                else:
-                    not_allowed_ideas = ["papal_influence", "yearly_harmony", "harmonization_speed", "church_power_modifier", "monthly_fervor_increase", "monthly_piety", "yearly_patriarch_authority"]
-                    ideas_pool_religion = [idea for idea in ideas_pool_government if not any(not_allowed in idea for not_allowed in not_allowed_ideas)]
+                    matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "monthly_piety" in exlusive]
+                    ideas_pool.extend(matching_ideas)
 
-                # remove incorrect ideas for given culture
-                ideas_pool = None
-                if(taken_culture != "manchu" or taken_culture != "manchu_new"):
-                    ideas_pool = [idea for idea in ideas_pool_religion if not "amount_of_banners" in idea]
-                else:
-                    ideas_pool = ideas_pool_religion
+                # add specific estates ideas for given religion and technology
+                if(not (taken_government == "pirate_republic_reform" or taken_government == "plutocratic_reform" or taken_government == "veche_republic" or taken_government == "venice_merchants_reform" or taken_government == "cossacks_reform" or taken_government == "siberian_tribe" or taken_government_group == "native")):
+                    if(taken_government == "steppe_horde"):
+                        matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "nomadic_tribes_loyalty_modifier" in exlusive]
+                        ideas_pool.extend(matching_ideas)
+                    else:
+                        for idea in ["nobles_loyalty_modifier", "burghers_loyalty_modifier", "church_loyalty_modifier"]:
+                            matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if idea in exlusive]
+                            ideas_pool.extend(matching_ideas)
+
+                        if(taken_government == "english_monarchy" or taken_government == "american_republic" or taken_government == "federal_republic" or taken_government == "peasants_republic"):
+                            ideas_pool_temp = ideas_pool
+                            ideas_pool = [idea for idea in ideas_pool_temp if not "nobles_loyalty_modifier" in idea]
+
+                        if(taken_religion_group == "christian" and taken_technology == "eastern"):
+                            matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "cossacks_loyalty_modifier" in exlusive]
+                            ideas_pool.extend(matching_ideas)
+
+                        if(taken_religion == "muslim" and taken_technology != "western"):
+                            matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "dhimmi_loyalty_modifier" in exlusive]
+                            ideas_pool.extend(matching_ideas)
+
+                        if(taken_religion == "hinduism" or (taken_religion == "muslim" and taken_technology == "indian")):
+                            ideas_pool_temp = ideas_pool
+                            ideas_pool = [idea for idea in ideas_pool_temp if not any(estate in idea for estate in ["church_loyalty_modifier", "dhimmi_loyalty_modifier"])]
+
+                        if(taken_technology == "indian"):
+                            matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "jains_loyalty_modifier" in exlusive]
+                            ideas_pool.extend(matching_ideas)
+                            if(taken_religion != "hinduism"):
+                                ideas_pool_temp = ideas_pool
+                                ideas_pool = [idea for idea in ideas_pool_temp if not "burghers_loyalty_modifier" in idea]
+
+                        if(taken_technology == "indian" and (taken_culture == "sinhala" or (taken_culture_group == "western_aryan" and not (taken_culture == "rajput" or taken_culture == "malvi")) or taken_culture_group == "dravidian")):
+                            matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "maratha_loyalty_modifier" in exlusive]
+                            ideas_pool.extend(matching_ideas)
+                            if(not (taken_religion_group == "muslim" or taken_religion == "sikhism" or taken_religion == "buddhism" or taken_religion == "vajrayana" or taken_religion == "mahayana")):
+                                ideas_pool_temp = ideas_pool
+                                ideas_pool = [idea for idea in ideas_pool_temp if not "nobles_loyalty_modifier" in idea]
+
+                        if(taken_technology == "indian" and (taken_culture == "rajput" or taken_culture == "malvi" or (taken_culture_group == "eastern_aryan" and taken_culture != "sinhala") or taken_culture_group == "hindusthani" or taken_culture_group == "central_indic")):
+                            matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "rajput_loyalty_modifier" in exlusive]
+                            ideas_pool.extend(matching_ideas)
+                            if(not (taken_religion_group == "muslim" or taken_religion == "sikhism" or taken_religion == "buddhism" or taken_religion == "vajrayana" or taken_religion == "mahayana")):
+                                ideas_pool_temp = ideas_pool
+                                ideas_pool = [idea for idea in ideas_pool_temp if not "nobles_loyalty_modifier" in idea]
+
+                        if(taken_religion == "hinduism" and taken_technology == "indian"):
+                            matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "vaisyas_loyalty_modifier" in exlusive]
+                            ideas_pool.extend(matching_ideas)
+                            ideas_pool_temp = ideas_pool
+                            ideas_pool = [idea for idea in ideas_pool_temp if not "burghers_loyalty_modifier" in idea]
+
+                # add specific ideas for given culture
+                if(taken_culture == "manchu" or taken_culture == "manchu_new"):
+                    matching_ideas = [exlusive for exlusive in exclusive_ideas_pool if "amount_of_banners" in exlusive]
+                    ideas_pool.extend(matching_ideas)
 
                 for position in range(len(chosen_ideas)):
                     taken_idea = random.choice(ideas_pool)
